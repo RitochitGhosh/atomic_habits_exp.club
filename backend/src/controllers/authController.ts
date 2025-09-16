@@ -62,7 +62,7 @@ export const register = async (req: Request, res: Response): Promise<void> => { 
     const accessToken = jwt.sign(
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET!,
-      { expiresIn: '15m' }
+      { expiresIn: '24h' }
     );
 
     const refreshToken = jwt.sign(
@@ -70,13 +70,6 @@ export const register = async (req: Request, res: Response): Promise<void> => { 
       process.env.JWT_REFRESH_SECRET!,
       { expiresIn: '7d' }
     );
-
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-    });
 
     res.status(201).json({
       message: 'User created successfully',
@@ -135,7 +128,7 @@ export const login = async (req: Request, res: Response): Promise<void> => { // 
     const accessToken = jwt.sign(
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET!,
-      { expiresIn: '15m' }
+      { expiresIn: '24h' }
     );
 
     const refreshToken = jwt.sign(
