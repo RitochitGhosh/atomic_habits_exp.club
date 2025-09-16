@@ -2,11 +2,12 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy package.json and package-lock.json if it exists
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (use npm ci if lockfile exists, fallback to npm install)
+# This way it works even if you don't commit package-lock.json in backend
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 
 # Copy source code
 COPY . .
