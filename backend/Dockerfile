@@ -10,6 +10,7 @@ RUN npm install
 
 # Copy source
 COPY . .
+COPY openapi.yaml ./openapi.yaml
 
 # Generate Prisma client
 RUN npx prisma generate
