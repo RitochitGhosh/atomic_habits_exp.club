@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:3001/api/:path*", // proxy
+        destination: "https://atomic-habits-exp-club-backend.onrender.com/api/:path*", // proxy
       },
     ]
   },
