@@ -35,6 +35,7 @@ RUN npm install --omit=dev
 # Copy built output from builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/openapi.yaml ./openapi.yaml
 
 
 # Generate Prisma client (runtime)
