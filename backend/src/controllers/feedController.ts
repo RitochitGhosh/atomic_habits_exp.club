@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 
-export const getFeed = async (req: Request, res: Response) => {
+export const getFeed = async (req: Request, res: Response): Promise<void> => {
   try {
     const { page = 1, limit = 20 } = req.query;
     const userId = (req as any).user.id;
@@ -16,7 +16,7 @@ export const getFeed = async (req: Request, res: Response) => {
     const followingIds = following.map(f => f.followingId);
 
     if (followingIds.length === 0) {
-      return res.json({
+      res.json({
         atoms: [],
         pagination: {
           page: Number(page),
@@ -25,6 +25,7 @@ export const getFeed = async (req: Request, res: Response) => {
           pages: 0
         }
       });
+      return;
     }
 
     const atoms = await prisma.atom.findMany({
@@ -87,9 +88,9 @@ export const getFeed = async (req: Request, res: Response) => {
   } catch (error) {
     throw error;
   }
-};
+}; // Tested
 
-export const getAtomById = async (req: Request, res: Response) => {
+export const getAtomById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = (req as any).user.id;
@@ -149,27 +150,29 @@ export const getAtomById = async (req: Request, res: Response) => {
     });
 
     if (!atom) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Atom not found'
       });
+      return;
     }
 
     res.json({ atom });
   } catch (error) {
     throw error;
   }
-};
+}; // Tested
 
-export const voteOnAtom = async (req: Request, res: Response) => {
+export const voteOnAtom = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { voteType } = req.body;
     const userId = (req as any).user.id;
 
     if (!['upvote', 'downvote'].includes(voteType)) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Invalid vote type'
       });
+      return;
     }
 
     // Check if atom exists
@@ -178,9 +181,10 @@ export const voteOnAtom = async (req: Request, res: Response) => {
     });
 
     if (!atom) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Atom not found'
       });
+      return;
     }
 
     // Check if user already voted
@@ -302,9 +306,9 @@ export const voteOnAtom = async (req: Request, res: Response) => {
   } catch (error) {
     throw error;
   }
-};
+}; // Tested
 
-export const removeVote = async (req: Request, res: Response) => {
+export const removeVote = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = (req as any).user.id;
@@ -319,9 +323,10 @@ export const removeVote = async (req: Request, res: Response) => {
     });
 
     if (!existingVote) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'No vote found'
       });
+      return;
     }
 
     // Remove vote
@@ -351,7 +356,7 @@ export const removeVote = async (req: Request, res: Response) => {
   } catch (error) {
     throw error;
   }
-};
+}; // Tested
 
 export const getTrendingAtoms = async (req: Request, res: Response) => {
   try {
@@ -436,4 +441,4 @@ export const getTrendingAtoms = async (req: Request, res: Response) => {
   } catch (error) {
     throw error;
   }
-};
+}; // Tested

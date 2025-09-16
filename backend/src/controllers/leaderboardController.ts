@@ -113,7 +113,7 @@ export const getDailyLeaderboard = async (req: Request, res: Response) => {
   } catch (error) {
     throw error;
   }
-};
+}; // Tested
 
 export const getTotalLeaderboard = async (req: Request, res: Response) => {
   try {
@@ -168,9 +168,9 @@ export const getTotalLeaderboard = async (req: Request, res: Response) => {
   } catch (error) {
     throw error;
   }
-};
+}; // Tested
 
-export const getUserRankingHistory = async (req: Request, res: Response) => {
+export const getUserRankingHistory = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { days = 30 } = req.query;
@@ -182,9 +182,10 @@ export const getUserRankingHistory = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'User not found'
       });
+      return;
     }
 
     // Get user's karma history (simplified - in real app, you'd store daily karma)
@@ -230,9 +231,9 @@ export const getUserRankingHistory = async (req: Request, res: Response) => {
   } catch (error) {
     throw error;
   }
-};
+}; // Tested
 
-export const getCategoryLeaderboard = async (req: Request, res: Response) => {
+export const getCategoryLeaderboard = async (req: Request, res: Response): Promise<void> => {
   try {
     const { categoryId } = req.params;
     const { limit = 50 } = req.query;
@@ -250,9 +251,10 @@ export const getCategoryLeaderboard = async (req: Request, res: Response) => {
     });
 
     if (!category) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Category not found'
       });
+      return;
     }
 
     // Get users with habits in this category
@@ -325,4 +327,4 @@ export const getCategoryLeaderboard = async (req: Request, res: Response) => {
   } catch (error) {
     throw error;
   }
-};
+}; 

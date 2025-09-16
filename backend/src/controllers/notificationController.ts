@@ -51,7 +51,7 @@ export const getNotifications = async (req: Request, res: Response) => {
   }
 };
 
-export const markNotificationAsRead = async (req: Request, res: Response) => {
+export const markNotificationAsRead = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = (req as any).user.id;
@@ -64,9 +64,10 @@ export const markNotificationAsRead = async (req: Request, res: Response) => {
     });
 
     if (!notification) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Notification not found'
       });
+      return;
     }
 
     const updatedNotification = await prisma.notification.update({
@@ -83,7 +84,7 @@ export const markNotificationAsRead = async (req: Request, res: Response) => {
   }
 };
 
-export const markMultipleAsRead = async (req: Request, res: Response) => {
+export const markMultipleAsRead = async (req: Request, res: Response): Promise<void> => {
   try {
     const { notificationIds } = markAsReadSchema.parse(req.body);
     const userId = (req as any).user.id;
@@ -117,16 +118,17 @@ export const markMultipleAsRead = async (req: Request, res: Response) => {
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Validation error',
         details: error.errors
       });
+      return;
     }
     throw error;
   }
 };
 
-export const deleteNotification = async (req: Request, res: Response) => {
+export const deleteNotification = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = (req as any).user.id;
@@ -139,9 +141,10 @@ export const deleteNotification = async (req: Request, res: Response) => {
     });
 
     if (!notification) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Notification not found'
       });
+      return;
     }
 
     await prisma.notification.delete({
@@ -204,15 +207,16 @@ export const updateNotificationSettings = async (req: Request, res: Response) =>
   }
 };
 
-export const createNotification = async (req: Request, res: Response) => {
+export const createNotification = async (req: Request, res: Response): Promise<void> => {
   try {
     const { type, title, message, data, scheduledFor } = req.body;
     const userId = (req as any).user.id;
 
     if (!type || !title || !message) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Type, title, and message are required'
       });
+      return;
     }
 
     const notification = await prisma.notification.create({
