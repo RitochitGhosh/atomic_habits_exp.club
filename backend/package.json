@@ -4,7 +4,7 @@
   "description": "Backend API for Social Habit Tracker",
   "main": "dist/index.js",
   "scripts": {
-    "build": "rimraf dist && tsc && copyfiles -u 1 src/openapi.yaml dist",
+    "build": "tsc && copyfiles -u 1 src/openapi.yaml dist",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "db:generate": "prisma generate",
