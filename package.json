@@ -1,5 +1,5 @@
 {
-  "name": "social-habit-tracker",
+  "name": "atomic-habit-exp-club",
   "version": "1.0.0",
   "description": "A comprehensive social habit tracking application with gamification and AI features",
   "private": true,
@@ -17,10 +17,11 @@
     "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
     "start:frontend": "cd frontend && npm run start",
     "start:backend": "cd backend && npm run start",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "install:all": "npm install && npm run install:frontend && npm run install:backend",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && npm install",
     "db:generate": "cd backend && npx prisma generate",
-    "db:push": "cd backend && npx prisma db push",
-    "db:seed": "cd backend && npx prisma db seed"
+    "db:push": "cd backend && npx prisma db push"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

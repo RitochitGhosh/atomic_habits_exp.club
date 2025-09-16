@@ -82,7 +82,7 @@ model HabitCompletion {
   isPublished Boolean  @default(false)
   completedAt DateTime @default(now())
 
-  habit Habit @relation(fields: [habitId], references: [id])
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id])
   atom  Atom?
 
@@ -106,7 +106,7 @@ model Atom {
   createdAt      DateTime @default(now())
 
   user       User            @relation(fields: [userId], references: [id])
-  habit      Habit           @relation(fields: [habitId], references: [id])
+  habit      Habit           @relation(fields: [habitId], references: [id], onDelete: Cascade)
   completion HabitCompletion @relation(fields: [completionId], references: [id])
   votes      AtomVote[]
 

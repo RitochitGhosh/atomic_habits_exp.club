@@ -60,8 +60,10 @@ Generate a similar caption for this habit completion:`;
     const response = await result.response;
     const caption = response.text().trim();
 
+    console.log("Caption_generated: ", caption);
+
     // Fallback if AI fails or returns empty
-    if (!caption || caption.length > 120) {
+    if (!caption) {
       return `Just completed my ${habitTitle} habit! 💪 #${categoryName.toLowerCase()}`;
     }
 

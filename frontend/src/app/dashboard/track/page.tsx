@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, ChangeEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Card, CardHeader, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Loader2, Upload, Paperclip, X } from 'lucide-react'
+import { useEffect, useState, ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Upload, Paperclip, X } from 'lucide-react';
 
 // Define the structure of a Habit
 interface Habit {
@@ -150,19 +150,20 @@ export default function TrackPage() {
 
       if (!res.ok) {
          const errorData = await res.json();
-         throw new Error(errorData.message || 'Completion failed');
+         toast.error(errorData.message || 'Failed to complete habit');
+          return;
       }
 
-      toast.success(`'${habit.title}' marked as done!`)
-      clearFileSelection(habit.id) // Clear selection on success
-      await fetchHabits()
+      toast.success(`'${habit.title}' marked as done!`);
+      clearFileSelection(habit.id); // Clear selection on success
+      await fetchHabits();
     } catch (err) {
-      console.error(err)
-      toast.error(err instanceof Error ? err.message : 'Failed to complete habit')
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : 'Failed to complete habit');
     } finally {
       setProcessing(prev => {
-        const newSet = new Set(prev); newSet.delete(habit.id)
-        return newSet
+        const newSet = new Set(prev); newSet.delete(habit.id);
+        return newSet;
       })
     }
   }
