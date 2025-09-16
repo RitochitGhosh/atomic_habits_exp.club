@@ -28,7 +28,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL!,
+    origin: "*",
     methods: ["*"]
   }
 });
@@ -61,11 +61,11 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/auth', authRoutes); // Tested
 app.use('/api/users', userRoutes); // Tested
 app.use('/api/categories', categoryRoutes); // Tested
-app.use('/api/habits', habitRoutes); 
-app.use('/api/tracker', trackerRoutes);
-app.use('/api/feed', feedRoutes);
-app.use('/api/leaderboard', leaderboardRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api/habits', habitRoutes); // Tested
+app.use('/api/tracker', trackerRoutes); // Tested
+app.use('/api/feed', feedRoutes); // Tested
+app.use('/api/leaderboard', leaderboardRoutes); // Tested
+app.use('/api/notifications', notificationRoutes); // Need to be implemented
 
 // Health check
 app.get('/api/health', (req, res) => {
