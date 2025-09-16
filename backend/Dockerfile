@@ -10,12 +10,11 @@ RUN npm install
 
 # Copy source
 COPY . .
-COPY openapi.yaml ./openapi.yaml
 
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build (runs tsc)
+# Build (runs tsc and copies openapi.yaml to dist)
 RUN npm run build
 
 
@@ -39,6 +38,9 @@ RUN npx prisma generate
 
 # Expose port
 EXPOSE 3001
+
+# Switch to a non-root user for security
+USER node
 
 # Start app
 CMD ["node", "dist/index.js"]
