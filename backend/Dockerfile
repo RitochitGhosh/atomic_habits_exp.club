@@ -20,6 +20,10 @@ RUN npm run build
 
 # Stage 2: Runtime
 FROM node:18-alpine
+
+# Install OpenSSL 1.1 compatibility package for Prisma
+RUN apk add --no-cache openssl1.1-compat
+
 WORKDIR /app
 
 # Copy only package files again
