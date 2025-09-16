@@ -32,6 +32,10 @@ RUN npm install --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
+
+# Generate Prisma client (runtime)
+RUN npx prisma generate
+
 # Expose port
 EXPOSE 3001
 
