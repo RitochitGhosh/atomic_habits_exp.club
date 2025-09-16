@@ -1,20 +1,25 @@
 # Stage 1: Build
 FROM node:18-alpine AS builder
+
+# Install OpenSSL for Prisma compatibility
+RUN apk add --no-cache openssl1.1-compat
+
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY prisma ./prisma
 
 # Install ALL dependencies (including dev)
 RUN npm install
 
-# Copy source
-COPY . .
-
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build (runs tsc and copies openapi.yaml to dist)
+# Copy source code
+COPY . .
+
+# Build application
 RUN npm run build
 
 
@@ -26,26 +31,32 @@ RUN apk add --no-cache openssl1.1-compat
 
 WORKDIR /app
 
-# Copy only package files again
-COPY package*.json ./
+# Create app directory and set ownership
+RUN mkdir -p /app && chown -R node:node /app
+
+# Copy package files
+COPY --chown=node:node package*.json ./
+COPY --chown=node:node prisma ./prisma
+
+# Switch to node user before installing dependencies
+USER node
 
 # Install only production dependencies
-RUN npm install --omit=dev
+RUN npm ci --omit=dev --no-audit --no-fund
+
+# Generate Prisma client for production
+RUN npx prisma generate
 
 # Copy built output from builder stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/openapi.yaml ./openapi.yaml
-
-
-# Generate Prisma client (runtime)
-RUN npx prisma generate
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --from=builder --chown=node:node /app/openapi.yaml ./openapi.yaml
 
 # Expose port
 EXPOSE 3001
 
-# Switch to a non-root user for security
-USER node
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node dist/healthcheck.js || exit 1
 
 # Start app
 CMD ["node", "dist/index.js"]
