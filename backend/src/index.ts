@@ -56,7 +56,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const swaggerDocument = YAML.load(
   path.join(__dirname, "../openapi.yaml")
 );
-
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Routes
