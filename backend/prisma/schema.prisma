@@ -1,0 +1,192 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  profileImage String?
+  bio          String?
+  totalKarma   Int      @default(0)
+  hasCompletedOnboarding Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  categories    Category[]
+  habits        Habit[]
+  completions   HabitCompletion[]
+  atoms         Atom[]
+  votes         AtomVote[]
+  followers     Follow[] @relation("UserFollowers")
+  following     Follow[] @relation("UserFollowing")
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  icon      String
+  userId    String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id])
+  habits Habit[]
+
+  @@unique([name, userId])
+  @@map("categories")
+}
+
+model Habit {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  type        HabitType
+  occurrence  Occurrence
+  slot        TimeSlot
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean    @default(true)
+  userId      String
+  categoryId  String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user        User              @relation(fields: [userId], references: [id])
+  category    Category          @relation(fields: [categoryId], references: [id])
+  completions HabitCompletion[]
+  atoms       Atom[]
+
+  @@unique([title, userId])
+  @@map("habits")
+}
+
+model HabitCompletion {
+  id          String   @id @default(cuid())
+  habitId     String
+  userId      String
+  image       String?
+  notes       String?
+  isPublished Boolean  @default(false)
+  completedAt DateTime @default(now())
+
+  habit Habit @relation(fields: [habitId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  atom  Atom?
+
+  @@map("habit_completions")
+}
+
+model Atom {
+  id             String   @id @default(cuid())
+  userId         String
+  habitId        String
+  completionId   String   @unique
+  image          String
+  caption        String
+  habitTitle     String
+  habitType      String
+  upvotes        Int      @default(0)
+  downvotes      Int      @default(0)
+  netVotes       Int      @default(0)
+  isCompleted    Boolean  @default(false)
+  completionTime DateTime
+  createdAt      DateTime @default(now())
+
+  user       User            @relation(fields: [userId], references: [id])
+  habit      Habit           @relation(fields: [habitId], references: [id])
+  completion HabitCompletion @relation(fields: [completionId], references: [id])
+  votes      AtomVote[]
+
+  @@map("atoms")
+}
+
+model AtomVote {
+  id       String   @id @default(cuid())
+  atomId   String
+  userId   String
+  voteType VoteType
+  createdAt DateTime @default(now())
+
+  atom Atom @relation(fields: [atomId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([atomId, userId])
+  @@map("atom_votes")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowers", fields: [followerId], references: [id])
+  following User @relation("UserFollowing", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType
+  title       String
+  message     String
+  data        Json?
+  isRead      Boolean          @default(false)
+  scheduledFor DateTime?
+  createdAt   DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+// Enums
+enum HabitType {
+  Personal
+  Shareable
+}
+
+enum Occurrence {
+  daily
+  weekly
+  weekdays
+  weekends
+  once_weekly
+  biweekly
+  twice_weekly
+}
+
+enum TimeSlot {
+  Morning
+  Afternoon
+  Evening
+  Night
+}
+
+enum VoteType {
+  upvote
+  downvote
+}
+
+enum NotificationType {
+  habit_reminder
+  streak_broken
+  achievement
+  social
+}

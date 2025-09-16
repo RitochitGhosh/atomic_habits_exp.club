@@ -1,0 +1,1769 @@
+openapi: 3.0.3
+info:
+  title: Exp.club_assignment (API Endpoints)
+  version: 1.0.0
+  description: OpenAPI specification for routes marked as "Tested" in the codebase.
+servers:
+  - url: http://localhost:3001
+    description: Local server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+      additionalProperties: false
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+      required: [page, limit, total, pages]
+    UserBase:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        profileImage:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        totalKarma:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, username, totalKarma, createdAt]
+    UserPublic:
+      allOf:
+        - $ref: '#/components/schemas/UserBase'
+        - type: object
+          properties:
+            _count:
+              type: object
+              properties:
+                followers:
+                  type: integer
+                following:
+                  type: integer
+                habits:
+                  type: integer
+                atoms:
+                  type: integer
+    AuthUser:
+      allOf:
+        - $ref: '#/components/schemas/UserBase'
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+            hasCompletedOnboarding:
+              type: boolean
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+        password:
+          type: string
+          minLength: 6
+      required: [email, username, password]
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/AuthUser'
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+      required: [message, user, accessToken, refreshToken]
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email, password]
+    LoginResponse:
+      $ref: '#/components/schemas/RegisterResponse'
+    RefreshRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required: [refreshToken]
+    RefreshResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/AuthUser'
+      required: [accessToken, user]
+    UpdateProfileRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+        bio:
+          type: string
+          maxLength: 160
+    UpdateProfileResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/AuthUser'
+      required: [message, user]
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+        isDefault:
+          type: boolean
+        userId:
+          type: string
+          nullable: true
+        _count:
+          type: object
+          properties:
+            habits:
+              type: integer
+      required: [id, name, icon]
+    CreateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        icon:
+          type: string
+          minLength: 1
+          maxLength: 10
+      required: [name, icon]
+    CreateCategoryResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        category:
+          $ref: '#/components/schemas/Category'
+      required: [message, category]
+    UpdateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        icon:
+          type: string
+    Habit:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        category:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            icon:
+              type: string
+        type:
+          type: string
+          enum: [Personal, Shareable]
+        occurrence:
+          type: string
+          enum: [daily, weekly, weekdays, weekends, once_weekly, biweekly, twice_weekly]
+        slot:
+          type: string
+          enum: [Morning, Afternoon, Evening, Night]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        isActive:
+          type: boolean
+        _count:
+          type: object
+          properties:
+            completions:
+              type: integer
+            atoms:
+              type: integer
+      required: [id, title, type, occurrence, slot, startDate]
+    CreateHabitRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+        type:
+          type: string
+          enum: [Personal, Shareable]
+        occurrence:
+          type: string
+          enum: [daily, weekly, weekdays, weekends, once_weekly, biweekly, twice_weekly]
+        slot:
+          type: string
+          enum: [Morning, Afternoon, Evening, Night]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+      required: [title, categoryId, type, occurrence, slot, startDate]
+    CreateHabitResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        habit:
+          $ref: '#/components/schemas/Habit'
+      required: [message, habit]
+    UpdateHabitRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+        type:
+          type: string
+          enum: [Personal, Shareable]
+        occurrence:
+          type: string
+          enum: [daily, weekly, weekdays, weekends, once_weekly, biweekly, twice_weekly]
+        slot:
+          type: string
+          enum: [Morning, Afternoon, Evening, Night]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+    HabitListResponse:
+      type: object
+      properties:
+        habits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Habit'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      required: [habits, pagination]
+    AtomUser:
+      type: object
+      properties:
+        id: { type: string }
+        username: { type: string }
+        profileImage: { type: string, nullable: true }
+        totalKarma: { type: integer }
+    Atom:
+      type: object
+      properties:
+        id: { type: string }
+        image: { type: string }
+        caption: { type: string }
+        habitTitle: { type: string }
+        habitType: { type: string }
+        completionTime: { type: string, format: date-time }
+        user: { $ref: '#/components/schemas/AtomUser' }
+        habit:
+          type: object
+          properties:
+            id: { type: string }
+            title: { type: string }
+            category:
+              type: object
+              properties:
+                name: { type: string }
+                icon: { type: string }
+        votes:
+          type: array
+          items:
+            type: object
+            properties:
+              voteType:
+                type: string
+                enum: [upvote, downvote]
+        _count:
+          type: object
+          properties:
+            votes: { type: integer }
+    FeedResponse:
+      type: object
+      properties:
+        atoms:
+          type: array
+          items:
+            $ref: '#/components/schemas/Atom'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      required: [atoms, pagination]
+    VoteRequest:
+      type: object
+      properties:
+        voteType:
+          type: string
+          enum: [upvote, downvote]
+      required: [voteType]
+    DailyLeaderboardUser:
+      allOf:
+        - $ref: '#/components/schemas/UserBase'
+        - type: object
+          properties:
+            dailyKarma: { type: integer }
+            starsEarned: { type: integer }
+            currentStreak: { type: integer }
+            socialEngagement: { type: integer }
+            rank: { type: integer }
+    DailyLeaderboardResponse:
+      type: object
+      properties:
+        leaderboard:
+          type: array
+          items: { $ref: '#/components/schemas/DailyLeaderboardUser' }
+        currentUserRank:
+          type: integer
+          nullable: true
+        date:
+          type: string
+      required: [leaderboard, date]
+    TotalLeaderboardUser:
+      allOf:
+        - $ref: '#/components/schemas/UserBase'
+        - type: object
+          properties:
+            _count:
+              type: object
+              properties:
+                habits: { type: integer }
+                atoms: { type: integer }
+                followers: { type: integer }
+                following: { type: integer }
+            rank: { type: integer }
+    TotalLeaderboardResponse:
+      type: object
+      properties:
+        leaderboard:
+          type: array
+          items: { $ref: '#/components/schemas/TotalLeaderboardUser' }
+        currentUserRank: { type: integer }
+        currentUserKarma: { type: integer }
+      required: [leaderboard, currentUserRank, currentUserKarma]
+    RankingHistoryResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id: { type: string }
+            username: { type: string }
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string }
+              karma: { type: integer }
+        totalDays: { type: integer }
+      required: [user, history, totalDays]
+    TrackerTodayStats:
+      type: object
+      properties:
+        totalHabits: { type: integer }
+        completedHabits: { type: integer }
+        completionRate: { type: integer }
+        starsEarned: { type: integer }
+    TrackerTodayResponse:
+      type: object
+      properties:
+        habits:
+          oneOf:
+            - type: array
+              items: { $ref: '#/components/schemas/Habit' }
+            - type: object
+              additionalProperties:
+                type: array
+                items: { $ref: '#/components/schemas/Habit' }
+        stats:
+          $ref: '#/components/schemas/TrackerTodayStats'
+      required: [habits, stats]
+    TrackerStatsResponse:
+      type: object
+      properties:
+        stats:
+          type: object
+          properties:
+            completionRate: { type: integer }
+            currentStreak: { type: integer }
+            totalCompletions: { type: integer }
+            completedDays: { type: integer }
+            totalDays: { type: integer }
+        heatmapData:
+          type: object
+          additionalProperties: { type: integer }
+        weeklyTrends:
+          type: object
+          additionalProperties: { type: integer }
+        completions:
+          type: array
+          items:
+            type: object
+            properties:
+              completedAt: { type: string, format: date-time }
+              habit:
+                type: object
+                properties:
+                  id: { type: string }
+                  title: { type: string }
+                  occurrence: { type: string }
+                  slot: { type: string }
+      required: [stats]
+    HeatmapEntry:
+      type: object
+      properties:
+        date: { type: string }
+        count: { type: integer }
+        habits:
+          type: array
+          items: { type: string }
+    HeatmapResponse:
+      type: object
+      properties:
+        year: { type: integer }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/HeatmapEntry' }
+      required: [year, data]
+    KarmaResponse:
+      type: object
+      properties:
+        karma:
+          type: object
+          properties:
+            daily: { type: integer }
+            streak: { type: integer }
+            starsEarned: { type: integer }
+            streakBonus: { type: integer }
+            socialEngagement: { type: integer }
+    LogoutResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+    HabitCompletion:
+      type: object
+      properties:
+        id: { type: string }
+        completedAt: { type: string, format: date-time }
+        image: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+        isPublished: { type: boolean }
+      required: [id, completedAt, isPublished]
+    CompleteHabitRequest:
+      type: object
+      properties:
+        image: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+        publishAsAtom: { type: boolean }
+    CompleteHabitResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            completion: { $ref: '#/components/schemas/HabitCompletion' }
+            atom:
+              $ref: '#/components/schemas/Atom'
+              nullable: true
+            habitType:
+              type: string
+              enum: [Personal, Shareable]
+            wasPublished: { type: boolean }
+      required: [success, message, data]
+    CategoryLeaderboardUser:
+      type: object
+      properties:
+        id: { type: string }
+        username: { type: string }
+        profileImage: { type: string, nullable: true }
+        totalKarma: { type: integer }
+        createdAt: { type: string, format: date-time }
+        categoryKarma: { type: integer }
+        categoryHabits: { type: integer }
+        categoryCompletions: { type: integer }
+        rank: { type: integer }
+    CategoryLeaderboardResponse:
+      type: object
+      properties:
+        category:
+          type: object
+          properties:
+            id: { type: string }
+            name: { type: string }
+            icon: { type: string }
+        leaderboard:
+          type: array
+          items: { $ref: '#/components/schemas/CategoryLeaderboardUser' }
+      required: [category, leaderboard]
+    Notification:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        type: { type: string }
+        title: { type: string }
+        message: { type: string }
+        data: { type: object, nullable: true }
+        isRead: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        scheduledFor: { type: string, format: date-time, nullable: true }
+      required: [id, userId, type, title, message, isRead, createdAt]
+    NotificationListResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items: { $ref: '#/components/schemas/Notification' }
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        unreadCount:
+          type: integer
+      required: [notifications, pagination, unreadCount]
+    MarkMultipleAsReadRequest:
+      type: object
+      properties:
+        notificationIds:
+          type: array
+          items:
+            type: string
+    NotificationSettings:
+      type: object
+      properties:
+        emailNotifications: { type: boolean }
+        pushNotifications: { type: boolean }
+        habitReminders: { type: boolean }
+        streakMilestones: { type: boolean }
+        socialNotifications: { type: boolean }
+        weeklyReports: { type: boolean }
+      required: [emailNotifications, pushNotifications, habitReminders, streakMilestones, socialNotifications, weeklyReports]
+    UpdateNotificationSettingsRequest:
+      type: object
+      properties:
+        emailNotifications: { type: boolean }
+        pushNotifications: { type: boolean }
+        habitReminders: { type: boolean }
+        streakMilestones: { type: boolean }
+        socialNotifications: { type: boolean }
+        weeklyReports: { type: boolean }
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      responses:
+        '200':
+          description: OK
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/login:
+    post:
+      summary: Login and obtain tokens
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/refresh:
+    post:
+      summary: Refresh access token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/me:
+    get:
+      summary: Get current user
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/AuthUser'
+        '404':
+  /api/auth/logout:
+    post:
+      summary: Logout
+      operationId: logout
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/users/{id}:
+    get:
+      summary: Get user profile
+      operationId: getUserProfile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserPublic'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/users/profile:
+    put:
+      summary: Update profile
+      operationId: updateProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateProfileResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/users/search/{query}:
+    get:
+      summary: Search users
+      operationId: searchUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserBase'
+  /api/users/{id}/follow:
+    post:
+      summary: Follow user
+      operationId: followUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Followed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Already following or self-follow
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/users/{id}/unfollow:
+    delete:
+      summary: Unfollow user
+      operationId: unfollowUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Unfollowed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Not following
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/users/{id}/followers:
+    get:
+      summary: Get followers
+      operationId: getFollowers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Followers list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  followers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserBase'
+  /api/users/{id}/following:
+    get:
+      summary: Get following
+      operationId: getFollowing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Following list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  following:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserBase'
+  /api/categories/:
+    get:
+      summary: Get all categories
+      operationId: getAllCategories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+    post:
+      summary: Create category
+      operationId: createCategory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCategoryResponse'
+        '400':
+          description: Validation or conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/categories/{id}:
+    get:
+      summary: Get category by ID
+      operationId: getCategoryById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  category:
+                    $ref: '#/components/schemas/Category'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete category
+      operationId: deleteCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+        '400':
+          description: Cannot delete due to existing habits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update category
+      operationId: updateCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCategoryResponse'
+        '400':
+          description: Validation or conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found or cannot be edited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/habits/:
+    get:
+      summary: Get all habits
+      operationId: getAllHabits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Habits list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HabitListResponse'
+    post:
+      summary: Create habit
+      operationId: createHabit
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHabitRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateHabitResponse'
+        '400':
+          description: Validation or conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/habits/{id}:
+    get:
+      summary: Get habit by ID
+      operationId: getHabitById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Habit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  habit:
+                    $ref: '#/components/schemas/Habit'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update habit
+      operationId: updateHabit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateHabitRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateHabitResponse'
+        '400':
+          description: Validation error or title conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Habit or category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete habit
+      operationId: deleteHabit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/habits/{id}/complete:
+    post:
+      summary: Complete habit
+      operationId: completeHabit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteHabitRequest'
+      responses:
+        '201':
+          description: Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteHabitResponse'
+        '400':
+          description: Validation or already completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Habit or category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/feed/:
+    get:
+      summary: Get feed
+      operationId: getFeed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Feed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedResponse'
+  /api/feed/trending:
+    get:
+      summary: Get trending atoms
+      operationId: getTrendingAtoms
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Trending list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedResponse'
+  /api/feed/{id}:
+    get:
+      summary: Get atom by ID
+      operationId: getAtomById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Atom
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  atom:
+                    $ref: '#/components/schemas/Atom'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/feed/{id}/vote:
+    post:
+      summary: Vote on atom
+      operationId: voteOnAtom
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteRequest'
+      responses:
+        '200':
+          description: Voted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  voteType:
+                    type: string
+                    nullable: true
+                    enum: [upvote, downvote]
+        '400':
+          description: Invalid vote type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Atom not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Remove vote from atom
+      operationId: removeVote
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vote removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        '404':
+          description: No vote found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/leaderboard/daily:
+    get:
+      summary: Get daily leaderboard
+      operationId: getDailyLeaderboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyLeaderboardResponse'
+  /api/leaderboard/total:
+    get:
+      summary: Get total leaderboard
+      operationId: getTotalLeaderboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalLeaderboardResponse'
+  /api/leaderboard/user/{id}/history:
+    get:
+      summary: Get user's ranking history
+      operationId: getUserRankingHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        '200':
+          description: History
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RankingHistoryResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/leaderboard/category/{categoryId}:
+    get:
+      summary: Get category-specific leaderboard
+      operationId: getCategoryLeaderboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryLeaderboardResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/tracker/stats:
+    get:
+      summary: Get habit statistics
+      operationId: getHabitStats
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: habitId
+          in: query
+          schema:
+            type: string
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        '200':
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackerStatsResponse'
+  /api/tracker/today:
+    get:
+      summary: Get today's habits
+      operationId: getTodayHabits
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slot
+          in: query
+          schema:
+            type: string
+            enum: [Morning, Afternoon, Evening, Night]
+      responses:
+        '200':
+          description: Today's habits and stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackerTodayResponse'
+  /api/tracker/heatmap:
+    get:
+      summary: Get heatmap data
+      operationId: getHeatmapData
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: habitId
+          in: query
+          schema:
+            type: string
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Heatmap
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeatmapResponse'
+  /api/tracker/karma:
+    get:
+      summary: Get karma points for today
+      operationId: getKarmaPoints
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Karma points
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KarmaResponse'
+  /api/notifications:
+    get:
+      summary: Get notifications
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+    post:
+      summary: Create notification
+      operationId: createNotification
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: { type: string }
+                title: { type: string }
+                message: { type: string }
+                data: { type: object }
+                scheduledFor: { type: string, format: date-time }
+              required: [type, title, message]
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  notification: { $ref: '#/components/schemas/Notification' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/notifications/{id}:
+    delete:
+      summary: Delete notification
+      operationId: deleteNotification
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/notifications/{id}/read:
+    put:
+      summary: Mark notification as read
+      operationId: markNotificationAsRead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  notification: { $ref: '#/components/schemas/Notification' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/notifications/mark-read:
+    put:
+      summary: Mark multiple notifications as read
+      operationId: markMultipleAsRead
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkMultipleAsReadRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/notifications/settings:
+    get:
+      summary: Get notification settings
+      operationId: getNotificationSettings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  settings:
+                    $ref: '#/components/schemas/NotificationSettings'
+    put:
+      summary: Update notification settings
+      operationId: updateNotificationSettings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationSettingsRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  settings: { $ref: '#/components/schemas/NotificationSettings' }
+
