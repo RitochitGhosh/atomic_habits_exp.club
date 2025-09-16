@@ -1,25 +1,39 @@
-FROM node:18-alpine
-
+# Stage 1: Build
+FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copy package.json and package-lock.json if it exists
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies (use npm ci if lockfile exists, fallback to npm install)
-# This way it works even if you don't commit package-lock.json in backend
-RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
+# Install ALL dependencies (including dev)
+RUN npm install
 
-# Copy source code
+# Copy source
 COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build the application
+# Build (runs tsc)
 RUN npm run build
+
+
+# Stage 2: Runtime
+FROM node:18-alpine
+WORKDIR /app
+
+# Copy only package files again
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm install --omit=dev
+
+# Copy built output from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
 
 # Expose port
 EXPOSE 3001
 
-# Start the application
-CMD ["npm", "start"]
+# Start app
+CMD ["node", "dist/index.js"]
