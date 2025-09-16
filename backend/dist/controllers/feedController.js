@@ -13,7 +13,7 @@ const getFeed = async (req, res) => {
         });
         const followingIds = following.map(f => f.followingId);
         if (followingIds.length === 0) {
-            return res.json({
+            res.json({
                 atoms: [],
                 pagination: {
                     page: Number(page),
@@ -22,6 +22,7 @@ const getFeed = async (req, res) => {
                     pages: 0
                 }
             });
+            return;
         }
         const atoms = await prisma_1.prisma.atom.findMany({
             where: {
@@ -142,9 +143,10 @@ const getAtomById = async (req, res) => {
             }
         });
         if (!atom) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'Atom not found'
             });
+            return;
         }
         res.json({ atom });
     }
@@ -159,17 +161,19 @@ const voteOnAtom = async (req, res) => {
         const { voteType } = req.body;
         const userId = req.user.id;
         if (!['upvote', 'downvote'].includes(voteType)) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Invalid vote type'
             });
+            return;
         }
         const atom = await prisma_1.prisma.atom.findUnique({
             where: { id }
         });
         if (!atom) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'Atom not found'
             });
+            return;
         }
         const existingVote = await prisma_1.prisma.atomVote.findUnique({
             where: {
@@ -289,9 +293,10 @@ const removeVote = async (req, res) => {
             }
         });
         if (!existingVote) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'No vote found'
             });
+            return;
         }
         await prisma_1.prisma.atomVote.delete({
             where: {

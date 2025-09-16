@@ -29,10 +29,11 @@ const register = async (req, res) => {
             }
         });
         if (existingUser) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'User already exists',
                 message: existingUser.email === email ? 'Email already registered' : 'Username already taken'
             });
+            return;
         }
         const passwordHash = await bcryptjs_1.default.hash(password, 12);
         const user = await prisma_1.prisma.user.create({
@@ -49,7 +50,7 @@ const register = async (req, res) => {
                 createdAt: true,
             }
         });
-        const accessToken = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+        const accessToken = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
         const refreshToken = jsonwebtoken_1.default.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
         res.status(201).json({
             message: 'User created successfully',
@@ -60,10 +61,11 @@ const register = async (req, res) => {
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Validation error',
                 details: error.errors
             });
+            return;
         }
         throw error;
     }
@@ -84,21 +86,29 @@ const login = async (req, res) => {
             }
         });
         if (!user) {
-            return res.status(401).json({
+            res.status(401).json({
                 error: 'Invalid credentials',
                 message: 'Email or password is incorrect'
             });
+            return;
         }
         const isValidPassword = await bcryptjs_1.default.compare(password, user.passwordHash);
         if (!isValidPassword) {
-            return res.status(401).json({
+            res.status(401).json({
                 error: 'Invalid credentials',
                 message: 'Email or password is incorrect'
             });
+            return;
         }
-        const accessToken = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+        const accessToken = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
         const refreshToken = jsonwebtoken_1.default.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
         const { passwordHash, ...userWithoutPassword } = user;
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
         res.json({
             message: 'Login successful',
             user: userWithoutPassword,
@@ -108,10 +118,11 @@ const login = async (req, res) => {
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Validation error',
                 details: error.errors
             });
+            return;
         }
         throw error;
     }
@@ -121,9 +132,10 @@ const refreshToken = async (req, res) => {
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) {
-            return res.status(401).json({
+            res.status(401).json({
                 error: 'Refresh token required'
             });
+            return;
         }
         const decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
         const user = await prisma_1.prisma.user.findUnique({
@@ -136,9 +148,10 @@ const refreshToken = async (req, res) => {
             }
         });
         if (!user) {
-            return res.status(401).json({
+            res.status(401).json({
                 error: 'Invalid refresh token'
             });
+            return;
         }
         const accessToken = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '15m' });
         res.json({
@@ -147,9 +160,10 @@ const refreshToken = async (req, res) => {
         });
     }
     catch (error) {
-        return res.status(401).json({
+        res.status(401).json({
             error: 'Invalid refresh token'
         });
+        return;
     }
 };
 exports.refreshToken = refreshToken;
@@ -178,9 +192,10 @@ const getCurrentUser = async (req, res) => {
             }
         });
         if (!user) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'User not found'
             });
+            return;
         }
         res.json({ user });
     }

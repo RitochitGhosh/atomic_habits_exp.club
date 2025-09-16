@@ -6,6 +6,7 @@ const getTodayHabits = async (req, res) => {
     try {
         const { slot } = req.query;
         const userId = req.user.id;
+        console.log("UserId: ", userId);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const where = {

@@ -11,7 +11,8 @@ const authenticateToken = async (req, res, next) => {
         const authHeader = req.headers.authorization;
         const token = authHeader && authHeader.split(' ')[1];
         if (!token) {
-            return res.status(401).json({ error: 'Access token required' });
+            res.status(401).json({ error: 'Access token required' });
+            return;
         }
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
         const user = await prisma_1.prisma.user.findUnique({
@@ -24,22 +25,25 @@ const authenticateToken = async (req, res, next) => {
             }
         });
         if (!user) {
-            return res.status(401).json({ error: 'Invalid token' });
+            res.status(401).json({ error: 'Invalid token' });
+            return;
         }
         req.user = user;
         next();
     }
     catch (error) {
-        return res.status(403).json({ error: 'Invalid or expired token' });
+        res.status(403).json({ error: 'Invalid or expired token' });
+        return;
     }
 };
 exports.authenticateToken = authenticateToken;
 const requireOnboarding = (req, res, next) => {
     if (!req.user?.hasCompletedOnboarding) {
-        return res.status(403).json({
+        res.status(403).json({
             error: 'Onboarding required',
             requiresOnboarding: true
         });
+        return;
     }
     next();
 };

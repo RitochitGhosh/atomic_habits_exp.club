@@ -4,8 +4,9 @@ export interface AuthRequest extends Request {
         id: string;
         email: string;
         username: string;
+        hasCompletedOnboarding: boolean;
     };
 }
-export declare const authenticateToken: (req: AuthRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
-export declare const requireOnboarding: (req: AuthRequest, res: Response, next: NextFunction) => Response<any, Record<string, any>> | undefined;
+export declare const authenticateToken: (req: AuthRequest, res: Response, next: NextFunction) => Promise<void>;
+export declare const requireOnboarding: (req: AuthRequest, res: Response, next: NextFunction) => void;
 //# sourceMappingURL=auth.d.ts.map

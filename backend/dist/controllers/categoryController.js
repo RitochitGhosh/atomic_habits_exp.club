@@ -51,9 +51,10 @@ const createCategory = async (req, res) => {
             }
         });
         if (existingCategory) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Category already exists'
             });
+            return;
         }
         const category = await prisma_1.prisma.category.create({
             data: {
@@ -77,10 +78,11 @@ const createCategory = async (req, res) => {
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Validation error',
                 details: error.errors
             });
+            return;
         }
         throw error;
     }
@@ -99,9 +101,10 @@ const updateCategory = async (req, res) => {
             }
         });
         if (!category) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'Category not found or cannot be edited'
             });
+            return;
         }
         if (name && name !== category.name) {
             const existingCategory = await prisma_1.prisma.category.findFirst({
@@ -112,9 +115,10 @@ const updateCategory = async (req, res) => {
                 }
             });
             if (existingCategory) {
-                return res.status(400).json({
+                res.status(400).json({
                     error: 'Category name already exists'
                 });
+                return;
             }
         }
         const updatedCategory = await prisma_1.prisma.category.update({
@@ -138,10 +142,11 @@ const updateCategory = async (req, res) => {
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Validation error',
                 details: error.errors
             });
+            return;
         }
         throw error;
     }
@@ -166,15 +171,17 @@ const deleteCategory = async (req, res) => {
             }
         });
         if (!category) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'Category not found or cannot be deleted'
             });
+            return;
         }
         if (category._count.habits > 0) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Cannot delete category with existing habits',
                 message: `This category has ${category._count.habits} habit(s). Please move or delete them first.`
             });
+            return;
         }
         await prisma_1.prisma.category.delete({
             where: { id }
@@ -227,9 +234,10 @@ const getCategoryById = async (req, res) => {
             }
         });
         if (!category) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'Category not found'
             });
+            return;
         }
         res.json({ category });
     }

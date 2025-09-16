@@ -4,28 +4,32 @@ exports.errorHandler = void 0;
 const errorHandler = (err, req, res, next) => {
     console.error('Error:', err);
     if (err.name === 'PrismaClientKnownRequestError') {
-        return res.status(400).json({
+        res.status(400).json({
             error: 'Database error',
             message: 'An error occurred while processing your request'
         });
+        return;
     }
     if (err.name === 'ValidationError') {
-        return res.status(400).json({
+        res.status(400).json({
             error: 'Validation error',
             message: err.message
         });
+        return;
     }
     if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({
+        res.status(401).json({
             error: 'Invalid token',
             message: 'Authentication failed'
         });
+        return;
     }
     if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({
+        res.status(401).json({
             error: 'Token expired',
             message: 'Please log in again'
         });
+        return;
     }
     res.status(500).json({
         error: 'Internal server error',

@@ -57,9 +57,10 @@ const markNotificationAsRead = async (req, res) => {
             }
         });
         if (!notification) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'Notification not found'
             });
+            return;
         }
         const updatedNotification = await prisma_1.prisma.notification.update({
             where: { id },
@@ -106,10 +107,11 @@ const markMultipleAsRead = async (req, res) => {
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Validation error',
                 details: error.errors
             });
+            return;
         }
         throw error;
     }
@@ -126,9 +128,10 @@ const deleteNotification = async (req, res) => {
             }
         });
         if (!notification) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'Notification not found'
             });
+            return;
         }
         await prisma_1.prisma.notification.delete({
             where: { id }
@@ -185,9 +188,10 @@ const createNotification = async (req, res) => {
         const { type, title, message, data, scheduledFor } = req.body;
         const userId = req.user.id;
         if (!type || !title || !message) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Type, title, and message are required'
             });
+            return;
         }
         const notification = await prisma_1.prisma.notification.create({
             data: {

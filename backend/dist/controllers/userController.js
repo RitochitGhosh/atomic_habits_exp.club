@@ -1,12 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.completeOnboarding = exports.getFollowing = exports.getFollowers = exports.unfollowUser = exports.followUser = exports.searchUsers = exports.updateProfile = exports.getUserProfile = void 0;
+exports.completeOnboarding = exports.getFollowing = exports.getFollowers = exports.unfollowUser = exports.followUser = exports.searchUsers = exports.updateProfile = exports.getUserProfile = exports.getAllUsers = void 0;
 const zod_1 = require("zod");
 const prisma_1 = require("../lib/prisma");
 const updateProfileSchema = zod_1.z.object({
     username: zod_1.z.string().min(3).max(20).optional(),
     bio: zod_1.z.string().max(160).optional(),
 });
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await prisma_1.prisma.user.findMany();
+        if (!users) {
+            res.status(404).json({
+                error: "Users not found!"
+            });
+            return;
+        }
+        res.status(200).json({ users });
+    }
+    catch (error) {
+        throw error;
+    }
+};
+exports.getAllUsers = getAllUsers;
 const getUserProfile = async (req, res) => {
     try {
         const { id } = req.params;
@@ -30,9 +46,10 @@ const getUserProfile = async (req, res) => {
             }
         });
         if (!user) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'User not found'
             });
+            return;
         }
         res.json({ user });
     }
@@ -53,9 +70,10 @@ const updateProfile = async (req, res) => {
                 }
             });
             if (existingUser) {
-                return res.status(400).json({
+                res.status(400).json({
                     error: 'Username already taken'
                 });
+                return;
             }
         }
         const user = await prisma_1.prisma.user.update({
@@ -82,10 +100,11 @@ const updateProfile = async (req, res) => {
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Validation error',
                 details: error.errors
             });
+            return;
         }
         throw error;
     }
@@ -139,17 +158,19 @@ const followUser = async (req, res) => {
         const { id: followingId } = req.params;
         const userId = req.user.id;
         if (followingId === userId) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Cannot follow yourself'
             });
+            return;
         }
         const userToFollow = await prisma_1.prisma.user.findUnique({
             where: { id: followingId }
         });
         if (!userToFollow) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'User not found'
             });
+            return;
         }
         const existingFollow = await prisma_1.prisma.follow.findUnique({
             where: {
@@ -160,9 +181,10 @@ const followUser = async (req, res) => {
             }
         });
         if (existingFollow) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Already following this user'
             });
+            return;
         }
         await prisma_1.prisma.follow.create({
             data: {
@@ -192,9 +214,10 @@ const unfollowUser = async (req, res) => {
             }
         });
         if (!follow) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'Not following this user'
             });
+            return;
         }
         await prisma_1.prisma.follow.delete({
             where: {
@@ -282,9 +305,10 @@ const completeOnboarding = async (req, res) => {
         const { followingIds } = req.body;
         const userId = req.user.id;
         if (!Array.isArray(followingIds) || followingIds.length < 3) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'Must follow at least 3 users to complete onboarding'
             });
+            return;
         }
         const users = await prisma_1.prisma.user.findMany({
             where: {
@@ -292,9 +316,10 @@ const completeOnboarding = async (req, res) => {
             }
         });
         if (users.length !== followingIds.length) {
-            return res.status(400).json({
+            res.status(400).json({
                 error: 'One or more users not found'
             });
+            return;
         }
         const followData = followingIds.map(followingId => ({
             followerId: userId,

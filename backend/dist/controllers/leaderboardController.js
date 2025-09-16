@@ -150,9 +150,10 @@ const getUserRankingHistory = async (req, res) => {
             select: { id: true, username: true }
         });
         if (!user) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'User not found'
             });
+            return;
         }
         const endDate = new Date();
         const startDate = new Date();
@@ -208,9 +209,10 @@ const getCategoryLeaderboard = async (req, res) => {
             }
         });
         if (!category) {
-            return res.status(404).json({
+            res.status(404).json({
                 error: 'Category not found'
             });
+            return;
         }
         const users = await prisma_1.prisma.user.findMany({
             where: {
