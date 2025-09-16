@@ -5,8 +5,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (including dev)
-RUN npm install
+# Install ALL dependencies (including dev) and rimraf
+RUN npm install && npm install -g rimraf
 
 # Copy source
 COPY . .
@@ -21,8 +21,8 @@ RUN npm run build
 # Stage 2: Runtime
 FROM node:18-alpine
 
-# Install OpenSSL 1.1 compatibility package for Prisma
-RUN apk add --no-cache openssl1.1-compat
+# Install OpenSSL 1.1 compatibility package for Prisma and rimraf
+RUN apk add --no-cache openssl1.1-compat && npm install -g rimraf
 
 WORKDIR /app
 
